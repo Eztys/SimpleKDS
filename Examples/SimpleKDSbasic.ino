@@ -1,6 +1,5 @@
 #include <SimpleKDS.h>
 
-// Request message for RPM
 byte RPM_req[] = {0x80, 0x11, 0xF1, 0x02, 0x21, 0x09, 0xAE};   //ECU replies with OK: 80 F1 11 04 61 09 AA BB CS, RPM = AA*100 + BB
 
 // Flag for ECU connection
@@ -9,7 +8,7 @@ bool ECUconnected = false;
 byte resState;
 // Buffer that holds the response message
 byte resbuf[20];
-// Variable to store RPM 
+// Variable to store the RPM in
 int RPM;
 
 SimpleKDS KDS;
@@ -38,11 +37,17 @@ void loop() {
 
   if (resState == RES_SUCCESS) {
     // Successfully received the response message which is stored in resbuf
-    // RPM are calculated by 100*resbuf[6]+resbuf[7]
 
-    RPM = 100 * resbuf[6] + resbuf[7];
+    // Check if response is positive
+    if (resbuf[4] == 0x61) {
+      // RPM are calculated by 100*resbuf[6]+resbuf[7]
+      RPM = 100 * resbuf[6] + resbuf[7];
 
-    // Do something with RPM e.g. show on LCD, write to file on SD,
+      // Do something with RPM e.g. show on LCD, write to file on SD,
+    } else {
+      // No positive response, reset ECU connection
+      ECUconnected = false;
+    }
 
   } else {
     // Timeout, reinitiate ECU
@@ -50,7 +55,6 @@ void loop() {
   }
 
 }
-
 
 
 
