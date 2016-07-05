@@ -52,7 +52,7 @@ class SimpleKDS
 	void sendRequest(byte *reqbuf, byte len);
 	byte getResponse(byte *resbuf);
 	void setTiming(byte P1, byte P2, byte P3, byte P4);
-	void setAddresses(byte ECU, byte Source);
+	void setAddresses(byte ECU, byte source);
 	
 	private:
 	
