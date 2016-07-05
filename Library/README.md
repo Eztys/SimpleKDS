@@ -25,8 +25,8 @@ Sends *len* bytes stored in *reqbuf* byte array.
 
 A function that receives the response message in a non-blocking manner. One byte is read per function call if available.<br><br>
 Returns:<br>
-*RES_BUSY* when not all bytes have been received i.e. continue calling the function<br><br>
-*RES_SUCCES* when the entire response message is received i.e. start parsing the response message<br><br>
+*RES_BUSY* when not all bytes have been received i.e. continue calling the function<br>
+*RES_SUCCES* when the entire response message is received i.e. start parsing the response message<br>
 *RES_TIMEOUT* when response was not received within timeout set in constructure (default 1500 ms)<br>
 
 **bool initECU()**
