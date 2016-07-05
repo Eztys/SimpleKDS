@@ -71,7 +71,7 @@ byte SimpleKDS::getResponse(byte *rbuffer) {
 					// Check if received message is echo or response
 					if (index == 1) {
 						// Read own request, reset index & timer (start over)          
-						if (rbuffer[1] != 0xF1) {
+						if (rbuffer[1] != sourceAddress) {
 							t = 0;
 							index = 0;
 							return RES_BUSY;             
@@ -112,8 +112,12 @@ byte SimpleKDS::getResponse(byte *rbuffer) {
 }
 
 bool SimpleKDS::initECU(){
-	byte start_communication[] = {0x81, 0x11, 0xF1, 0x81, 0x04};				
-	byte start_diagnostic_mode[] = {0x80, 0x11, 0xF1, 0x02, 0x10, 0x80, 0x14};  // ECU replies with OK: 80 F1 11 02 50 80 54	
+	byte start_communication[] = {0x81, ECUAddress, sourceAddress, 0x81, 0x04};		
+	start_communication[4] = start_communication[0]+start_communication[1]+start_communication[2]+start_communication[3];
+	
+	byte start_diagnostic_mode[] = {0x80, ECUAddress, sourceAddress, 0x02, 0x10, 0x80, 0x14};  
+	start_diagnostic_mode[6] = start_communication[0]+start_communication[1]+start_communication[2]+start_communication[3]+start_diagnostic_mode[4]+start_diagnostic_mode[5];
+	
 	byte resbuf[8];	
 	byte resState;
 	
