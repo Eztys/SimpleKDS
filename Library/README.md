@@ -17,6 +17,10 @@ P4 = interResponseRequestdelay (default 55 ms)<br />
 
 Please read the ISO-14230 document to learn more about the timing settings. <br/>
 
+**void setAddresses(byte ECU, byte source)**
+
+This function allows the user to set the address of the source (default 0xF1) and ECU (default 0x11). <br>
+
 **void sendRequest(byte *reqbuf, byte len)**
 
 Sends *len* bytes stored in *reqbuf* byte array.
