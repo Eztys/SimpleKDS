@@ -116,7 +116,7 @@ bool SimpleKDS::initECU(){
 	start_communication[4] = start_communication[0]+start_communication[1]+start_communication[2]+start_communication[3];
 	
 	byte start_diagnostic_mode[] = {0x80, ECUAddress, sourceAddress, 0x02, 0x10, 0x80, 0x14};  
-	start_diagnostic_mode[6] = start_communication[0]+start_communication[1]+start_communication[2]+start_communication[3]+start_diagnostic_mode[4]+start_diagnostic_mode[5];
+	start_diagnostic_mode[6] = start_diagnostic_mode[0]+start_diagnostic_mode[1]+start_diagnostic_mode[2]+start_diagnostic_mode[3]+start_diagnostic_mode[4]+start_diagnostic_mode[5];
 	
 	byte resbuf[8];	
 	byte resState;
