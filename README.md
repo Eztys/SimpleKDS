@@ -4,4 +4,5 @@ The Kawasaki Diagnostic System (KDS) is a system which is utilized to communicat
 
 Several developers have worked on a datalogging function based on an Arduino (e.g. [HerrRiebmann](https://github.com/HerrRiebmann/KDS2Bluetooth/blob/master/README.md) with KDS2Bluetooth and [tomnz](https://bitbucket.org/tomnz/kawaduino/overview) with Kawaduino), however a basic KDS library has not yet been made public to the best of my knowledge. 
 
-Therefore I introduce SimpleKDS which is an Arduino library for the KDS protocol. SimpleKDS offers a simple method to send requests of which the request is received in a non-blocking manner. Due to the simplicity of the library it can be used in many applications like datalogging or custom gauges. 
+Therefore I introduce SimpleKDS which is an Arduino library for the KDS protocol. SimpleKDS offers a simple method to send requests of which the response is received in a non-blocking manner. Due to the simplicity of the library it can be used in many applications like datalogging or real time monitoring. 
+
