@@ -4,7 +4,7 @@ SimpleKDS::SimpleKDS(){
 	K_IN = 0;				// RX pin
 	K_OUT = 1;				// TX pin
 	BAUDRATE = 10400;		// KDS baudrate
-	TIMEOUT = 1500;			// Maximum timeout for response
+	TIMEOUT = 5000;			// Maximum timeout for response
 	ECUAddress = 0x11;
 	sourceAddress = 0xF1;
 
@@ -44,10 +44,15 @@ void SimpleKDS::setAddresses(byte ECU, byte source) {
 	
 }
 
+void SimpleKDS::setTimeout(int t) {
+	TIMEOUT = t;
+}
+
+
 byte SimpleKDS::getResponse(byte *rbuffer) {
 	// These bytes remain unchanged in between function calls
 	// Used to monitor the response while not blocking the program
-	static byte index = 0;
+	static int index = 0;
 	static byte len = 255;
 	static unsigned long t = 0;
 
@@ -61,7 +66,7 @@ byte SimpleKDS::getResponse(byte *rbuffer) {
 		if (index < len) {
 			
 			// Check if bytes are available
-			if (Serial.available() > 0) {
+			while (Serial.available() > 0) {
 				// Read one byte
 				rbuffer[index] = Serial.read();
 				
@@ -87,9 +92,10 @@ byte SimpleKDS::getResponse(byte *rbuffer) {
 					
 					// Increase index to read next byte
 					index++;
+					t=0;
 				}
 			}
-
+			
 			// Read correct byte move on to next byte
 			return RES_BUSY;                             
 			
@@ -112,17 +118,21 @@ byte SimpleKDS::getResponse(byte *rbuffer) {
 }
 
 bool SimpleKDS::initECU(){
-	byte start_communication[] = {0x81, ECUAddress, sourceAddress, 0x81, 0x04};		
+	
+	byte start_communication[] = {0x81, ECUAddress, sourceAddress, 0x81, 0x00};		
 	start_communication[4] = start_communication[0]+start_communication[1]+start_communication[2]+start_communication[3];
 	
-	byte start_diagnostic_mode[] = {0x80, ECUAddress, sourceAddress, 0x02, 0x10, 0x80, 0x14};  
+	byte start_diagnostic_mode[] = {0x80, ECUAddress, sourceAddress, 0x02, 0x10, 0x80, 0x0};  
 	start_diagnostic_mode[6] = start_diagnostic_mode[0]+start_diagnostic_mode[1]+start_diagnostic_mode[2]+start_diagnostic_mode[3]+start_diagnostic_mode[4]+start_diagnostic_mode[5];
 	
-	byte resbuf[8];	
+	byte resbuf[10];	
 	byte resState;
 	
+	// Clear serial RX buffer
+	while(Serial.available()) Serial.read();
+	
 	// End Serial Port
-	Serial.end();                                 
+	Serial.end(); 
 
 	// Start fast init sequence
 	pinMode(K_OUT, OUTPUT);                       
@@ -146,10 +156,7 @@ bool SimpleKDS::initECU(){
 	
 	// Return false if start communication request was denied or failed
 	if (resState != RES_SUCCESS) return false;	
-	if(resbuf[4] != 0xC1) return false;
-
-	// Necessary delay between response-request
-	delay(interResReqDelay);
+	if(resbuf[4] != byte(start_communication[3] + 0x40)) return false;
 	
 	// Send start diagnostic mode request
 	sendRequest(start_diagnostic_mode, sizeof(start_diagnostic_mode));            	
@@ -160,10 +167,7 @@ bool SimpleKDS::initECU(){
 	
 	// Return false if diagnostic mode request was denied or failed
 	if (resState != RES_SUCCESS) return false;
-	if(resbuf[4] != 0x50) return false;
-	
-	// Necessary delay between response-request
-	delay(interResReqDelay);
+	if(resbuf[4] != byte(start_diagnostic_mode[4] + 0x40)) return false;
 	
 	// Initialization successful
 	return true;	
