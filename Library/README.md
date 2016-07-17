@@ -21,6 +21,10 @@ Please read the ISO-14230 document to learn more about the timing settings. <br/
 
 This function allows the user to set the address of the source (default 0xF1) and ECU (default 0x11). <br>
 
+**void setTimout(int t)**
+
+By calling this function, the response timeout can be set (default 5000 ms).<br>
+
 **void sendRequest(byte *reqbuf, byte len)**
 
 Sends *len* bytes stored in *reqbuf* byte array.
