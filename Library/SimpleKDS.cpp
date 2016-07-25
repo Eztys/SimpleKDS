@@ -1,12 +1,13 @@
 #include "SimpleKDS.h"
  
-SimpleKDS::SimpleKDS(){
+SimpleKDS::SimpleKDS(int resbufsize){
 	K_IN = 0;				// RX pin
 	K_OUT = 1;				// TX pin
 	BAUDRATE = 10400;		// KDS baudrate
-	TIMEOUT = 5000;			// Maximum timeout for response
+	responseTimeout = 5000;			// Maximum timeout for response
 	ECUAddress = 0x11;
 	sourceAddress = 0xF1;
+	responseBufferSize = resbufsize;	// Maximum buffer size to prevent buffer overflow
 
 	interByteReqDelay = 5;  // 5
 	interByteResDelay = 0;  // 10
@@ -45,7 +46,7 @@ void SimpleKDS::setAddresses(byte ECU, byte source) {
 }
 
 void SimpleKDS::setTimeout(int t) {
-	TIMEOUT = t;
+	responseTimeout = t;
 }
 
 
@@ -53,20 +54,23 @@ byte SimpleKDS::getResponse(byte *rbuffer) {
 	// These bytes remain unchanged in between function calls
 	// Used to monitor the response while not blocking the program
 	static int index = 0;
-	static byte len = 255;
+	static int len = 255;
 	static unsigned long t = 0;
 
 	// After a request is send the timer is set
 	if (t == 0) t = millis();
 
 	// Check if function call is within timeout limit
-	if (millis() - t < TIMEOUT) {
+	if (millis() - t < responseTimeout) {
 		
 		// Check if more bytes need to be received
 		if (index < len) {
 			
 			// Check if bytes are available
 			while (Serial.available() > 0) {
+				// Reset timer
+				t=0;
+				
 				// Read one byte
 				rbuffer[index] = Serial.read();
 				
@@ -77,27 +81,43 @@ byte SimpleKDS::getResponse(byte *rbuffer) {
 					if (index == 1) {
 						// Read own request, reset index & timer (start over)          
 						if (rbuffer[1] != sourceAddress) {
-							t = 0;
-							index = 0;
-							return RES_BUSY;             
+							// Check if next byte could be beginning of new request
+							if((rbuffer[1] == 0x80) || (rbuffer[1] == 0x81)) {
+								// Discard only first byte i.e. shift 1 byte to the left
+								rbuffer[0] = rbuffer[1];		
+								// Next byte should be index=1 
+								index = 1;								
+							} else {
+								index = 0;					            
+							}
+							return BUSY;
+							
 						}
 					// Set the length of the response
 					} else if (index == 3) {		
 						if (rbuffer[0] == 0x80) {
 							len = rbuffer[3] + 5;
+							
+							// Check if response buffer is large enough
+							if (len > responseBufferSize) {
+								len = 255;
+								index = 0;
+								return BUFFEROVERFLOW;
+							}
 						} else {
 							len = 5;
 						}
+						
 					}
 					
 					// Increase index to read next byte
-					index++;
-					t=0;
+					index++;					
 				}
+				
 			}
 			
 			// Read correct byte move on to next byte
-			return RES_BUSY;                             
+			return BUSY;                             
 			
 		// Read all bytes, reset timer, index and length  
 		} else {
@@ -105,7 +125,7 @@ byte SimpleKDS::getResponse(byte *rbuffer) {
 			index = 0;
 			len = 255;
 			delay(interResReqDelay);
-			return RES_SUCCESS;                      
+			return SUCCESS;                      
 		}
 		
 	// Timeout, reset timer, index and length         
@@ -113,7 +133,7 @@ byte SimpleKDS::getResponse(byte *rbuffer) {
 		t = 0;
 		index = 0;
 		len = 255;
-		return RES_TIMEOUT;                         
+		return TIMEOUT;                         
 	}
 }
 
@@ -151,22 +171,22 @@ bool SimpleKDS::initECU(){
 	sendRequest(start_communication, sizeof(start_communication));
 
 	// Read response
-	resState = RES_BUSY;
-	while (resState == RES_BUSY) resState = getResponse(resbuf);
+	resState = BUSY;
+	while (resState == BUSY) resState = getResponse(resbuf);
 	
 	// Return false if start communication request was denied or failed
-	if (resState != RES_SUCCESS) return false;	
+	if (resState != SUCCESS) return false;	
 	if(resbuf[4] != byte(start_communication[3] + 0x40)) return false;
 	
 	// Send start diagnostic mode request
 	sendRequest(start_diagnostic_mode, sizeof(start_diagnostic_mode));            	
 	
 	// Read response
-	resState = RES_BUSY;
-	while (resState == RES_BUSY) resState = getResponse(resbuf);
+	resState = BUSY;
+	while (resState == BUSY) resState = getResponse(resbuf);
 	
 	// Return false if diagnostic mode request was denied or failed
-	if (resState != RES_SUCCESS) return false;
+	if (resState != SUCCESS) return false;
 	if(resbuf[4] != byte(start_diagnostic_mode[4] + 0x40)) return false;
 	
 	// Initialization successful
