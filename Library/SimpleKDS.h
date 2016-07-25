@@ -2,17 +2,18 @@
 #define SimpleKDS_h
 #include "Arduino.h"
 
+
 // Response states
-#define RES_SUCCESS 0
-#define RES_TIMEOUT 1
-#define RES_BUSY 2
+#define SUCCESS 0
+#define TIMEOUT 1
+#define BUSY 2
+#define BUFFEROVERFLOW 3
 
 class SimpleKDS
 {
 	public:
 	
-	SimpleKDS();
-	SimpleKDS(int baudrate);
+	SimpleKDS(int resbufsize);
 	~SimpleKDS();
 	bool initECU();
 	void sendRequest(byte *reqbuf, byte len);
@@ -26,13 +27,14 @@ class SimpleKDS
 	byte K_IN;
 	byte K_OUT;
 	uint16_t BAUDRATE;
-	uint16_t TIMEOUT;
+	uint16_t responseTimeout;
 	byte interByteReqDelay;
 	byte interByteResDelay;
 	byte interReqResDelay;
 	byte interResReqDelay;
 	byte ECUAddress;
 	byte sourceAddress;
+	uint16_t responseBufferSize;
 	
 };
 
