@@ -1,11 +1,13 @@
 The library contains the following functions:
 
-**SimpleKDS()**
+**SimpleKDS(int resbufsize)**
 
 Constructor that sets the following parameters:<br />
 - Uses digital pin 0 and 1 for serial communication (hardware serial)<br />
 - 10400 baudrate for KDS<br />
 - 1500 ms timeout for responses<br />
+ 
+The argument is the response buffer size such that the library can prevent buffer overflow.
 
 **void setTiming(byte P1, byte P2, byte P3, byte P4)**
 
@@ -33,9 +35,10 @@ Sends *len* bytes stored in *reqbuf* byte array.
 
 A function that receives the response message in a non-blocking manner. One byte is read per function call (if available) and stored in the *resbuf* byte array.<br><br>
 Returns:<br>
-*RES_BUSY* when not all bytes have been received i.e. continue calling the function<br>
-*RES_SUCCESS* when the entire response message is received i.e. start parsing the response message<br>
-*RES_TIMEOUT* when response was not received within timeout set in constructure (default 1500 ms)<br>
+*BUSY* when not all bytes have been received i.e. continue calling the function<br>
+*SUCCESS* when the entire response message is received i.e. start parsing the response message<br>
+*TIMEOUT* when response was not received within timeout set in constructure (default 1500 ms)<br>
+*BUFFEROVERFLOW* when the response is larger than then buffer<br>
 
 **bool initECU()**
 
