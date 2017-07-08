@@ -7,11 +7,12 @@ bool ECUconnected = false;
 // Variable that monitors the response of the "getResponse" function
 byte resState;
 // Buffer that holds the response message
-byte resbuf[20];
+const int resbufsize = 100;
+byte resbuf[resbufsize];
 // Variable to store the RPM in
 int RPM;
 
-SimpleKDS KDS;
+SimpleKDS KDS(resbufsize);
 
 void setup() {
   // Default timing according to ISO-14230
@@ -31,11 +32,11 @@ void loop() {
   KDS.sendRequest(RPM_req, sizeof(RPM_req));
 
   // Receive the response. Receiving this way will block the Arduino.
-  resState = RES_BUSY;
-  while (resState == RES_BUSY) resState = KDS.getResponse(resbuf);
+  resState = BUSY;
+  while (resState == BUSY) resState = KDS.getResponse(resbuf);
 
 
-  if (resState == RES_SUCCESS) {
+  if (resState == SUCCESS) {
     // Successfully received the response message which is stored in resbuf
 
     // Check if response is positive
@@ -55,6 +56,3 @@ void loop() {
   }
 
 }
-
-
-
